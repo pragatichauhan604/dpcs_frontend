@@ -1,5 +1,14 @@
 export type Role = "doctor" | "patient" | "pharmacist" | "admin";
 
+export type Screen = "dashboard" | "prescriptions" | "create" | "pharmacies" | "inventory" | "admin";
+
+export type AuthMode = "login" | "doctor" | "patient" | "pharmacist";
+
+export type Session = {
+  token: string;
+  user: User;
+};
+
 export type User = {
   id: string;
   fullName: string;
@@ -93,4 +102,12 @@ export type Notification = {
   type: string;
   isRead: boolean;
   createdAt: string;
+};
+
+export type ToastFn = (message: string) => void;
+
+export type QrPreview = {
+  title: string;
+  image?: string;
+  token?: string;
 };

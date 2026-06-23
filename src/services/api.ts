@@ -1,5 +1,3 @@
-import { Role } from "./types";
-
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 export class ApiError extends Error {
@@ -43,9 +41,4 @@ export const createApi = (getToken: () => string | null): ApiClient => {
     post: (path, body) => request(path, { method: "POST", body: JSON.stringify(body || {}) }),
     patch: (path, body) => request(path, { method: "PATCH", body: JSON.stringify(body || {}) }),
   };
-};
-
-export const roleHome = (role: Role) => {
-  if (role === "pharmacist") return "pharmacy";
-  return role;
 };

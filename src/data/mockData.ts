@@ -1,4 +1,4 @@
-import { Medicine, Notification, Pharmacy, Prescription } from "./types";
+import { Medicine, Notification, Pharmacy, Prescription } from "../types";
 
 export const demoMedicines: Medicine[] = [
   {
@@ -61,8 +61,32 @@ export const demoPrescriptions: Prescription[] = [
     issuedDate: new Date().toISOString(),
     expiryDate: new Date(Date.now() + 28 * 86400000).toISOString(),
     notes: "Hydration and rest advised. Review if fever persists.",
-    doctor: { user: { id: "d1", fullName: "Dr. Kavya Sharma", email: "", phone: "", role: "doctor", isActive: true, isVerified: true }, hospitalName: "Metro Clinic", specialization: "General Physician" },
-    patient: { user: { id: "p1", fullName: "Aarav Mehta", email: "", phone: "9876543210", role: "patient", isActive: true, isVerified: true }, bloodGroup: "O+", city: "Noida" },
+    doctor: {
+      user: {
+        id: "d1",
+        fullName: "Dr. Kavya Sharma",
+        email: "",
+        phone: "",
+        role: "doctor",
+        isActive: true,
+        isVerified: true,
+      },
+      hospitalName: "Metro Clinic",
+      specialization: "General Physician",
+    },
+    patient: {
+      user: {
+        id: "p1",
+        fullName: "Aarav Mehta",
+        email: "",
+        phone: "9876543210",
+        role: "patient",
+        isActive: true,
+        isVerified: true,
+      },
+      bloodGroup: "O+",
+      city: "Noida",
+    },
     items: [
       {
         medicineName: "Dolo 650",
