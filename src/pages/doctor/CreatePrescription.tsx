@@ -24,6 +24,7 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
   const [patientId, setPatientId] = useState("");
+  const [disease, setDisease] = useState("");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<PrescriptionItem[]>([{ ...emptyItem }]);
   const [medicines, setMedicines] = useState<Medicine[]>(demoMedicines);
@@ -48,6 +49,7 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
     try {
       await api.post("/doctor/prescriptions", {
         patientId,
+        disease: disease || undefined,
         notes,
         items: items.map((item) => ({
           ...item,
@@ -58,6 +60,7 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
       notify("Prescription issued with QR code.");
       setItems([{ ...emptyItem }]);
       setNotes("");
+      setDisease("");
       setPatientId("");
     } catch (error) {
       notify(error instanceof ApiError ? error.message : "Prescription could not be saved");
@@ -85,6 +88,9 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
             </button>
           ))}
           {!patients.length && <p className="empty-state">Search for an existing patient to continue.</p>}
+        </div>
+        <div className="form-grid" style={{ marginTop: 14 }}>
+          <Field label="Disease / diagnosis" value={disease} onChange={setDisease} />
         </div>
       </section>
 

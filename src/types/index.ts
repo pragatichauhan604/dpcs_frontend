@@ -1,8 +1,8 @@
 export type Role = "doctor" | "patient" | "pharmacist" | "admin";
 
-export type Screen = "dashboard" | "prescriptions" | "create" | "pharmacies" | "inventory" | "admin";
+export type Screen = "dashboard" | "prescriptions" | "create" | "doctors" | "pharmacies" | "inventory" | "admin";
 
-export type AuthMode = "login" | "doctor" | "patient" | "pharmacist";
+export type AuthMode = "login" | "doctor" | "patient" | "pharmacist" | "admin";
 
 export type Session = {
   token: string;
@@ -88,6 +88,7 @@ export type Prescription = {
   qrCodeToken?: string;
   issuedDate: string;
   expiryDate: string;
+  disease?: string;
   notes?: string;
   items: PrescriptionItem[];
   doctor?: { user?: User; hospitalName?: string; specialization?: string };

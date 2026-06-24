@@ -28,13 +28,23 @@ export function AdminPanel({ api, screen, notify }: AdminPanelProps) {
   }, [api]);
 
   const approveDoctor = async (id: string) => {
-    await api.patch(`/admin/doctors/${id}/approval`, { isApproved: true });
-    notify("Doctor approved.");
+    try {
+      await api.patch(`/admin/doctors/${id}/approval`, { isApproved: true });
+      setDoctors((current) => current.map((doctor) => (doctor.id === id ? { ...doctor, isApproved: true } : doctor)));
+      notify("Doctor approved.");
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : "Doctor approval failed");
+    }
   };
 
   const approvePharmacy = async (id: string) => {
-    await api.patch(`/admin/pharmacies/${id}/approval`, { isApproved: true });
-    notify("Pharmacy approved.");
+    try {
+      await api.patch(`/admin/pharmacies/${id}/approval`, { isApproved: true });
+      setPharmacies((current) => current.map((pharmacy) => (pharmacy.id === id ? { ...pharmacy, isApproved: true } : pharmacy)));
+      notify("Pharmacy approved.");
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : "Pharmacy approval failed");
+    }
   };
 
   const addMedicine = async () => {

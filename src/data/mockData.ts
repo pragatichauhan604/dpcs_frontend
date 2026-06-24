@@ -60,6 +60,7 @@ export const demoPrescriptions: Prescription[] = [
     qrCodeToken: "demo-token-1024",
     issuedDate: new Date().toISOString(),
     expiryDate: new Date(Date.now() + 28 * 86400000).toISOString(),
+    disease: "Fever",
     notes: "Hydration and rest advised. Review if fever persists.",
     doctor: {
       user: {

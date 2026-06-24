@@ -30,7 +30,14 @@ export const createApi = (getToken: () => string | null): ApiClient => {
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new ApiError(payload.message || "Request failed", response.status);
+      const fieldErrors = payload.errors?.fieldErrors
+        ? Object.entries(payload.errors.fieldErrors)
+            .flatMap(([field, messages]) => (Array.isArray(messages) ? messages.map((message) => `${field}: ${message}`) : []))
+            .join("; ")
+        : "";
+      const fallback = response.status === 409 ? "This email or license number is already registered." : "Request failed";
+      const message = payload.message === "Already exists: field" ? fallback : payload.message;
+      throw new ApiError(fieldErrors || message || fallback, response.status);
     }
 
     return payload as T;

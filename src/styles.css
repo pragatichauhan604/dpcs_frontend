@@ -117,7 +117,7 @@ h3 {
 
 .segmented {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
   gap: 6px;
   padding: 6px;
   border-radius: 8px;
@@ -179,12 +179,66 @@ h3 {
   outline: none;
 }
 
+.file-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  border: 1px dashed #cbd8d4;
+  border-radius: 7px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.file-control.input-error {
+  border-color: #c33d3d;
+  background: #fff8f8;
+}
+
+.file-control input[type="file"] {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.image-preview {
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+  border: 1px solid #d8e2de;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
 .field input:focus,
 .field select:focus,
 .notes-box:focus,
 .search-box input:focus {
   border-color: #0f766e;
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+}
+
+.field input.input-error,
+.field select.input-error {
+  border-color: #c33d3d;
+  background: #fff8f8;
+}
+
+.field-error {
+  color: #a53131;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.form-error {
+  padding: 11px 12px;
+  color: #922626;
+  background: #ffe9e9;
+  border: 1px solid #f3bbbb;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-weight: 650;
 }
 
 .primary-button,
@@ -455,6 +509,55 @@ h3 {
   gap: 14px;
 }
 
+.doctor-grid,
+.treatment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.doctor-card,
+.treatment-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #d8e2de;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.treatment-card {
+  display: grid;
+}
+
+.doctor-card img,
+.doctor-avatar {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 8px;
+}
+
+.doctor-card img {
+  object-fit: cover;
+}
+
+.doctor-avatar {
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #0f766e;
+  font-weight: 900;
+}
+
+.doctor-card p,
+.doctor-card span,
+.treatment-card p {
+  margin: 0;
+  color: #60706c;
+  font-size: 0.9rem;
+}
+
 .prescription-card {
   padding: 16px;
 }
@@ -650,7 +753,9 @@ tr:last-child td {
   }
 
   .stats-grid,
-  .prescription-grid {
+  .prescription-grid,
+  .doctor-grid,
+  .treatment-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -669,6 +774,8 @@ tr:last-child td {
   .segmented,
   .stats-grid,
   .prescription-grid,
+  .doctor-grid,
+  .treatment-grid,
   .form-grid,
   .medicine-editor,
   .filters-row {
