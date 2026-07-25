@@ -20,12 +20,14 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
   const [dashboard, setDashboard] = useState<any>(null);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [pharmacies, setPharmacies] = useState<any[]>([]);
+  const [pharmacists, setPharmacists] = useState<any[]>([]);
   const [medicine, setMedicine] = useState({ brandName: "", genericName: "", category: "", dosageForms: "Tablet", standardStrength: "" });
 
   useEffect(() => {
     api.get<any>("/admin/dashboard").then(setDashboard).catch(() => setDashboard(null));
     api.get<{ doctors: any[] }>("/admin/doctors").then((data) => setDoctors(data.doctors)).catch(() => setDoctors([]));
     api.get<{ pharmacies: any[] }>("/admin/pharmacies").then((data) => setPharmacies(data.pharmacies)).catch(() => setPharmacies(demoPharmacies));
+    api.get<{ pharmacists: any[] }>("/admin/pharmacists").then((data) => setPharmacists(data.pharmacists)).catch(() => setPharmacists([]));
   }, [api]);
 
   const approveDoctor = async (id: string) => {
@@ -45,6 +47,16 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
       notify("Pharmacy approved.");
     } catch (error) {
       notify(error instanceof ApiError ? error.message : "Pharmacy approval failed");
+    }
+  };
+
+  const approvePharmacist = async (id: string) => {
+    try {
+      await api.patch(`/admin/pharmacists/${id}/approval`, { isApproved: true });
+      setPharmacists((current) => current.map((pharmacist) => (pharmacist.id === id ? { ...pharmacist, isApproved: true } : pharmacist)));
+      notify("Pharmacist approved.");
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : "Pharmacist approval failed");
     }
   };
 
@@ -89,13 +101,35 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
             </div>
           </div>
           <DataTable
-            columns={["Name", "City", "Phone", "Status", "Action"]}
+            columns={["Pharmacy ID", "Name", "City", "Phone", "Status", "Action"]}
             rows={pharmacies.map((pharmacy) => [
+              pharmacy.id,
               pharmacy.name,
               pharmacy.city,
               pharmacy.phone,
               pharmacy.isApproved ? "Active" : "Pending",
               <button className="table-action" onClick={() => approvePharmacy(pharmacy.id)} disabled={pharmacy.isApproved}>
+                Approve
+              </button>,
+            ])}
+          />
+        </section>
+        <section className="section-panel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Approvals</p>
+              <h2>Pharmacists</h2>
+            </div>
+          </div>
+          <DataTable
+            columns={["Name", "Email", "License", "Pharmacy", "Status", "Action"]}
+            rows={pharmacists.map((pharmacist) => [
+              pharmacist.user?.fullName,
+              pharmacist.user?.email,
+              pharmacist.licenseNumber,
+              pharmacist.pharmacy?.name || pharmacist.pharmacyId,
+              pharmacist.isApproved ? "Active" : "Pending",
+              <button className="table-action" onClick={() => approvePharmacist(pharmacist.id)} disabled={pharmacist.isApproved}>
                 Approve
               </button>,
             ])}

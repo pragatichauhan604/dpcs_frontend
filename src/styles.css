@@ -786,6 +786,34 @@ h3 {
   font-size: 0.9rem;
 }
 
+.doctor-search {
+  margin-bottom: 14px;
+}
+
+.doctor-book-button {
+  margin-top: 10px;
+}
+
+.disease-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.disease-tags small {
+  padding: 4px 8px;
+  color: #0d6a40;
+  background: #dff7e9;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.appointment-modal {
+  width: min(520px, 100%);
+}
+
 .prescription-card {
   padding: 16px;
 }
