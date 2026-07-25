@@ -32,7 +32,7 @@ export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr }
             ))}
           </div>
           <div className="card-actions">
-            {audience !== "doctor" && (
+            {onShowQr && (
               <button className="ghost-button compact" onClick={() => onShowQr?.(prescription)}>
                 <QrCode size={16} />
                 QR

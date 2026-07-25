@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Pill } from "lucide-react";
 import { Field } from "../components/ui/Field";
 import { FileField } from "../components/ui/FileField";
@@ -7,6 +7,27 @@ import { AuthMode, Role, Session, ToastFn, User } from "../types";
 
 const acceptedProfilePhotoTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxProfilePhotoSize = 2 * 1024 * 1024;
+
+const createInitialForm = () => ({
+  fullName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  phone: "",
+  role: "patient" as Role,
+  licenseNumber: "",
+  specialization: "General Physician",
+  hospitalName: "",
+  hospitalAddress: "",
+  profilePhoto: "",
+  dateOfBirth: "",
+  gender: "male",
+  bloodGroup: "O+",
+  address: "",
+  city: "",
+  pincode: "",
+  pharmacyId: "",
+});
 
 type AuthPageProps = {
   api: ApiClient;
@@ -21,26 +42,15 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phone: "",
-    role: "patient" as Role,
-    licenseNumber: "",
-    specialization: "General Physician",
-    hospitalName: "",
-    hospitalAddress: "",
-    profilePhoto: "",
-    dateOfBirth: "",
-    gender: "male",
-    bloodGroup: "O+",
-    address: "",
-    city: "",
-    pincode: "",
-    pharmacyId: "",
-  });
+  const [form, setForm] = useState(createInitialForm);
+
+  useEffect(() => {
+    setMode(initialMode);
+    setForm(createInitialForm());
+    setFormError("");
+    setFieldErrors({});
+    setTouched({});
+  }, [initialMode]);
 
   const update = (key: string, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -68,6 +78,7 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
 
   const changeMode = (next: AuthMode) => {
     setMode(next);
+    setForm(createInitialForm());
     setFormError("");
     setFieldErrors({});
     setTouched({});
@@ -222,6 +233,8 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
       await api.post(`/auth/register/${mode}`, payload);
       notify("Registration submitted. You can login after approval if required.");
       setMode("login");
+      setForm(createInitialForm());
+      window.history.pushState({}, "", "/login");
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Something went wrong";
       setFormError(message);
@@ -302,7 +315,19 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
                   <option value="other">Other</option>
                 </select>
               </label>
-              <Field label="Blood group" value={form.bloodGroup} onChange={(value) => update("bloodGroup", value)} />
+              <label className="field">
+                <span>Blood group</span>
+                <select value={form.bloodGroup} onChange={(event) => update("bloodGroup", event.target.value)}>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </label>
               <Field label="Address" value={form.address} error={touched.address ? fieldErrors.address : ""} onBlur={() => touch("address")} onChange={(value) => update("address", value)} />
               <Field label="City" value={form.city} error={touched.city ? fieldErrors.city : ""} onBlur={() => touch("city")} onChange={(value) => update("city", value)} />
               <Field label="Pincode" value={form.pincode} error={touched.pincode ? fieldErrors.pincode : ""} onBlur={() => touch("pincode")} onChange={(value) => update("pincode", value)} />
@@ -311,6 +336,9 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
 
           {mode === "pharmacist" && (
             <div className="form-grid">
+              <div className="field-help full-span">
+                Use existing pharmacy UUID. Example: <code>550e8400-e29b-41d4-a716-446655440000</code>
+              </div>
               <Field label="Pharmacy ID" value={form.pharmacyId} error={touched.pharmacyId ? fieldErrors.pharmacyId : ""} onBlur={() => touch("pharmacyId")} onChange={(value) => update("pharmacyId", value)} />
               <Field label="License number" value={form.licenseNumber} error={touched.licenseNumber ? fieldErrors.licenseNumber : ""} onBlur={() => touch("licenseNumber")} onChange={(value) => update("licenseNumber", value)} />
             </div>
