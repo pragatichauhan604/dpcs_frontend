@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://dpcsbackend-production.up.railway.app/api";
 
 export class ApiError extends Error {
   constructor(
@@ -33,11 +35,21 @@ export const createApi = (getToken: () => string | null): ApiClient => {
     if (!response.ok) {
       const fieldErrors = payload.errors?.fieldErrors
         ? Object.entries(payload.errors.fieldErrors)
-            .flatMap(([field, messages]) => (Array.isArray(messages) ? messages.map((message) => `${field}: ${message}`) : []))
+            .flatMap(([field, messages]) =>
+              Array.isArray(messages)
+                ? messages.map((message) => `${field}: ${message}`)
+                : [],
+            )
             .join("; ")
         : "";
-      const fallback = response.status === 409 ? "This email or license number is already registered." : "Request failed";
-      const message = payload.message === "Already exists: field" ? fallback : payload.message;
+      const fallback =
+        response.status === 409
+          ? "This email or license number is already registered."
+          : "Request failed";
+      const message =
+        payload.message === "Already exists: field"
+          ? fallback
+          : payload.message;
       throw new ApiError(fieldErrors || message || fallback, response.status);
     }
 
@@ -62,8 +74,10 @@ export const createApi = (getToken: () => string | null): ApiClient => {
 
   return {
     get: (path) => request(path),
-    post: (path, body) => request(path, { method: "POST", body: JSON.stringify(body || {}) }),
-    patch: (path, body) => request(path, { method: "PATCH", body: JSON.stringify(body || {}) }),
+    post: (path, body) =>
+      request(path, { method: "POST", body: JSON.stringify(body || {}) }),
+    patch: (path, body) =>
+      request(path, { method: "PATCH", body: JSON.stringify(body || {}) }),
     download,
   };
 };
