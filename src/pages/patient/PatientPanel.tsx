@@ -12,10 +12,11 @@ import { DoctorListPanel } from "./DoctorListPanel";
 type PatientPanelProps = {
   api: ApiClient;
   screen: Screen;
+  setScreen: (screen: Screen) => void;
   notify: ToastFn;
 };
 
-export function PatientPanel({ api, screen, notify }: PatientPanelProps) {
+export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelProps) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [qrPreview, setQrPreview] = useState<QrPreview | null>(null);
@@ -31,10 +32,10 @@ export function PatientPanel({ api, screen, notify }: PatientPanelProps) {
   return (
     <div className="content-stack">
       <div className="stats-grid">
-        <StatCard icon={ClipboardPlus} label="Active prescriptions" value={prescriptions.filter((item) => item.status === "active").length || 1} />
-        <StatCard icon={QrCode} label="QR codes" value={prescriptions.length || 1} />
-        <StatCard icon={Stethoscope} label="Available doctors" value={doctors.length} />
-        <StatCard icon={Store} label="Nearby pharmacies" value={demoPharmacies.length} />
+        <StatCard icon={ClipboardPlus} label="Active prescriptions" value={prescriptions.filter((item) => item.status === "active").length || 1} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
+        <StatCard icon={QrCode} label="QR codes" value={prescriptions.length || 1} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
+        <StatCard icon={Stethoscope} label="Available doctors" value={doctors.length} onClick={() => setScreen("doctors")} />
+        <StatCard icon={Store} label="Nearby pharmacies" value={demoPharmacies.length} onClick={() => setScreen("pharmacies")} />
       </div>
 
       <section className="section-panel">
@@ -96,30 +97,32 @@ export function PatientPanel({ api, screen, notify }: PatientPanelProps) {
         </div>
       </section>
 
-      <PrescriptionList
-        prescriptions={prescriptions.length ? prescriptions : demoPrescriptions}
-        audience="patient"
-        onShowQr={async (prescription) => {
-          try {
-            const response = await api.get<{ prescription: Prescription }>(`/patient/prescriptions/${prescription.id}/qr`);
-            setQrPreview({
-              title: `Prescription ${response.prescription.id}`,
-              image: response.prescription.qrCode,
-              token: response.prescription.qrCodeToken,
-            });
-          } catch (error) {
-            notify(error instanceof ApiError ? error.message : "QR code could not be opened");
-          }
-        }}
-        onRefill={async (id) => {
-          try {
-            await api.post(`/patient/prescriptions/${id}/refill-request`);
-            notify("Refill request sent to the doctor.");
-          } catch (error) {
-            notify(error instanceof ApiError ? error.message : "Refill request could not be sent");
-          }
-        }}
-      />
+      <div id="patient-prescriptions">
+        <PrescriptionList
+          prescriptions={prescriptions.length ? prescriptions : demoPrescriptions}
+          audience="patient"
+          onShowQr={async (prescription) => {
+            try {
+              const response = await api.get<{ prescription: Prescription }>(`/patient/prescriptions/${prescription.id}/qr`);
+              setQrPreview({
+                title: `Prescription ${response.prescription.id}`,
+                image: response.prescription.qrCode,
+                token: response.prescription.qrCodeToken,
+              });
+            } catch (error) {
+              notify(error instanceof ApiError ? error.message : "QR code could not be opened");
+            }
+          }}
+          onRefill={async (id) => {
+            try {
+              await api.post(`/patient/prescriptions/${id}/refill-request`);
+              notify("Refill request sent to the doctor.");
+            } catch (error) {
+              notify(error instanceof ApiError ? error.message : "Refill request could not be sent");
+            }
+          }}
+        />
+      </div>
       {qrPreview && <QrModal qr={qrPreview} onClose={() => setQrPreview(null)} />}
     </div>
   );

@@ -12,10 +12,11 @@ import { labelize } from "../../utils/format";
 type AdminPanelProps = {
   api: ApiClient;
   screen: Screen;
+  setScreen: (screen: Screen) => void;
   notify: ToastFn;
 };
 
-export function AdminPanel({ api, screen, notify }: AdminPanelProps) {
+export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) {
   const [dashboard, setDashboard] = useState<any>(null);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [pharmacies, setPharmacies] = useState<any[]>([]);
@@ -129,10 +130,10 @@ export function AdminPanel({ api, screen, notify }: AdminPanelProps) {
   return (
     <div className="content-stack">
       <div className="stats-grid">
-        <StatCard icon={Stethoscope} label="Doctors" value={dashboard?.totalRegisteredDoctors ?? doctors.length} />
+        <StatCard icon={Stethoscope} label="Doctors" value={dashboard?.totalRegisteredDoctors ?? doctors.length} onClick={() => setScreen("admin")} />
         <StatCard icon={Users} label="Patients" value={dashboard?.totalRegisteredPatients ?? 0} />
-        <StatCard icon={Store} label="Active pharmacies" value={dashboard?.activePharmacies ?? pharmacies.filter((item) => item.isApproved).length} />
-        <StatCard icon={Activity} label="Prescriptions today" value={dashboard?.totalPrescriptionsToday ?? 0} />
+        <StatCard icon={Store} label="Active pharmacies" value={dashboard?.activePharmacies ?? pharmacies.filter((item) => item.isApproved).length} onClick={() => setScreen("admin")} />
+        <StatCard icon={Activity} label="Prescriptions today" value={dashboard?.totalPrescriptionsToday ?? 0} onClick={() => setScreen("inventory")} />
       </div>
       <section className="section-panel">
         <div className="section-head">

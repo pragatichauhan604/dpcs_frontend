@@ -7,6 +7,7 @@ React frontend for the Digital Prescription and Pharmacy Management System.
 - React
 - TypeScript
 - Vite
+- Tailwind CSS
 - lucide-react icons
 
 ## Folder Structure
