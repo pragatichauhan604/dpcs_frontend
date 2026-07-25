@@ -26,7 +26,17 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
     api.get<{ doctors: any[] }>("/patient/doctors").then((data) => setDoctors(data.doctors)).catch(() => setDoctors([]));
   }, [api]);
 
-  if (screen === "doctors") return <DoctorListPanel api={api} />;
+  const downloadPdf = async (prescription: Prescription) => {
+    try {
+      const blob = await api.download(`/patient/prescriptions/${prescription.id}/pdf`);
+      saveBlob(blob, `prescription-${prescription.id}.pdf`);
+      notify("Prescription PDF downloaded.");
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : "Prescription PDF could not be downloaded");
+    }
+  };
+
+  if (screen === "doctors") return <DoctorListPanel api={api} notify={notify} />;
   if (screen === "pharmacies") return <AvailabilityPanel api={api} />;
 
   return (
@@ -54,6 +64,9 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
                   <span className="status active">{prescription.disease || "General treatment"}</span>
                   <h3>{prescription.doctor?.user?.fullName || "Doctor"}</h3>
                   <p>{prescription.doctor?.specialization || prescription.doctor?.hospitalName || "Treatment plan"}</p>
+                  <button className="ghost-button compact" onClick={() => setScreen("doctors")}>
+                    Book appointment
+                  </button>
                 </div>
                 <div className="medicine-list">
                   {prescription.items.map((item, index) => (
@@ -121,9 +134,21 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
               notify(error instanceof ApiError ? error.message : "Refill request could not be sent");
             }
           }}
+          onDownloadPdf={downloadPdf}
         />
       </div>
       {qrPreview && <QrModal qr={qrPreview} onClose={() => setQrPreview(null)} />}
     </div>
   );
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

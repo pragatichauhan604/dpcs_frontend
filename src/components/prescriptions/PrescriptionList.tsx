@@ -1,4 +1,4 @@
-import { Bell, Pill, QrCode } from "lucide-react";
+import { Bell, Download, Pill, QrCode } from "lucide-react";
 import { Prescription } from "../../types";
 import { formatCode } from "../../utils/format";
 
@@ -7,9 +7,10 @@ type PrescriptionListProps = {
   audience: "doctor" | "patient" | "pharmacy";
   onRefill?: (id: string) => void;
   onShowQr?: (prescription: Prescription) => void;
+  onDownloadPdf?: (prescription: Prescription) => void;
 };
 
-export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr }: PrescriptionListProps) {
+export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr, onDownloadPdf }: PrescriptionListProps) {
   return (
     <div className="prescription-grid">
       {prescriptions.map((prescription) => (
@@ -36,6 +37,12 @@ export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr }
               <button className="ghost-button compact" onClick={() => onShowQr?.(prescription)}>
                 <QrCode size={16} />
                 QR
+              </button>
+            )}
+            {onDownloadPdf && (
+              <button className="ghost-button compact" onClick={() => onDownloadPdf(prescription)}>
+                <Download size={16} />
+                PDF
               </button>
             )}
             {audience === "patient" && (

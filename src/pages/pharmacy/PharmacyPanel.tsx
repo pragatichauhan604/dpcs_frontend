@@ -47,11 +47,12 @@ export function PharmacyPanel({ api, screen, notify }: PharmacyPanelProps) {
 
   const scan = async () => {
     try {
-      const response = await api.get<{ prescription: Prescription }>(`/pharmacy/prescriptions/scan/${token}`);
+      const scannedToken = extractScannedToken(token);
+      const response = await api.get<{ prescription: Prescription }>(`/pharmacy/prescriptions/scan/${encodeURIComponent(scannedToken)}`);
       setPrescription(response.prescription);
     } catch (error) {
       notify(error instanceof ApiError ? error.message : "QR token not found");
-      setPrescription(demoPrescriptions[0]);
+      setPrescription(null);
     }
   };
 
@@ -62,6 +63,16 @@ export function PharmacyPanel({ api, screen, notify }: PharmacyPanelProps) {
       notify("Prescription marked as dispensed.");
     } catch (error) {
       notify(error instanceof ApiError ? error.message : "Dispense failed");
+    }
+  };
+
+  const downloadPdf = async (item: Prescription) => {
+    try {
+      const blob = await api.download(`/pharmacy/prescriptions/${item.id}/pdf`);
+      saveBlob(blob, `prescription-${item.id}.pdf`);
+      notify("Prescription PDF downloaded.");
+    } catch (error) {
+      notify(error instanceof ApiError ? error.message : "Prescription PDF could not be downloaded");
     }
   };
 
@@ -80,7 +91,7 @@ export function PharmacyPanel({ api, screen, notify }: PharmacyPanelProps) {
         </div>
         <div className="search-box">
           <QrCode size={18} />
-          <input value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste scanned QR token" />
+          <input value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste scanned QR token or full QR PDF link" />
         </div>
       </section>
       {prescription && (
@@ -105,10 +116,28 @@ export function PharmacyPanel({ api, screen, notify }: PharmacyPanelProps) {
                 token: item.qrCodeToken,
               })
             }
+            onDownloadPdf={downloadPdf}
           />
         </section>
       )}
       {qrPreview && <QrModal qr={qrPreview} onClose={() => setQrPreview(null)} />}
     </div>
   );
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function extractScannedToken(value: string) {
+  const trimmed = value.trim();
+  const match = trimmed.match(/\/qr\/([^/]+)\/pdf/i);
+  return match?.[1] || trimmed;
 }

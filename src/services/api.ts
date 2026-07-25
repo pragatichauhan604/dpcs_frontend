@@ -13,6 +13,7 @@ export type ApiClient = {
   get<T>(path: string): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
   patch<T>(path: string, body?: unknown): Promise<T>;
+  download(path: string): Promise<Blob>;
 };
 
 export const createApi = (getToken: () => string | null): ApiClient => {
@@ -43,9 +44,26 @@ export const createApi = (getToken: () => string | null): ApiClient => {
     return payload as T;
   };
 
+  const download = async (path: string) => {
+    const token = getToken();
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new ApiError(payload.message || "Download failed", response.status);
+    }
+
+    return response.blob();
+  };
+
   return {
     get: (path) => request(path),
     post: (path, body) => request(path, { method: "POST", body: JSON.stringify(body || {}) }),
     patch: (path, body) => request(path, { method: "PATCH", body: JSON.stringify(body || {}) }),
+    download,
   };
 };

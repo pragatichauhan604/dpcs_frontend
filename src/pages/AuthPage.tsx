@@ -337,7 +337,7 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
           {mode === "pharmacist" && (
             <div className="form-grid">
               <div className="field-help full-span">
-                Use existing pharmacy UUID. Example: <code>550e8400-e29b-41d4-a716-446655440000</code>
+                Testing pharmacy UUID: <code>550e8400-e29b-41d4-a716-446655440005</code>
               </div>
               <Field label="Pharmacy ID" value={form.pharmacyId} error={touched.pharmacyId ? fieldErrors.pharmacyId : ""} onBlur={() => touch("pharmacyId")} onChange={(value) => update("pharmacyId", value)} />
               <Field label="License number" value={form.licenseNumber} error={touched.licenseNumber ? fieldErrors.licenseNumber : ""} onBlur={() => touch("licenseNumber")} onChange={(value) => update("licenseNumber", value)} />
