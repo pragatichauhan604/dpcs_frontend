@@ -257,16 +257,36 @@ export function AuthPage({ api, initialMode = "login", onAuth, notify }: AuthPag
           </div>
         </div>
 
-        <div className="segmented">
-          {(["login", "doctor", "patient", "pharmacist", "admin"] as AuthMode[]).map((item) => (
-            <button key={item} type="button" className={mode === item ? "active" : ""} onClick={() => changeMode(item)}>
-              {item === "login" ? "Login" : item}
+        <div className="auth-heading-row">
+          <div>
+            <p className="eyebrow">{mode === "login" ? "Welcome back" : "Create account"}</p>
+            <h2>{mode === "login" ? "Login" : `Register ${mode}`}</h2>
+          </div>
+          {mode === "login" ? (
+            <button type="button" className="ghost-button" onClick={() => changeMode("patient")}>
+              Register
             </button>
-          ))}
+          ) : (
+            <button type="button" className="ghost-button" onClick={() => changeMode("login")}>
+              Login
+            </button>
+          )}
         </div>
 
         <form className="auth-form" onSubmit={submit}>
           {formError && <div className="form-error">{formError}</div>}
+
+          {mode !== "login" && (
+            <label className="field">
+              <span>Register as</span>
+              <select value={mode} onChange={(event) => changeMode(event.target.value as AuthMode)}>
+                <option value="patient">Patient</option>
+                <option value="doctor">Doctor</option>
+                <option value="pharmacist">Pharmacist</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+          )}
 
           {mode !== "login" && (
             <>

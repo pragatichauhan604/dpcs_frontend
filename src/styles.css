@@ -70,6 +70,20 @@ button:disabled {
   margin-bottom: 24px;
 }
 
+.auth-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #d8e2de;
+}
+
+.auth-heading-row h2 {
+  text-transform: capitalize;
+}
+
 .brand-mark {
   width: 54px;
   height: 54px;
@@ -1056,6 +1070,15 @@ tr:last-child td {
   .auth-panel,
   .section-panel {
     padding: 16px;
+  }
+
+  .auth-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auth-heading-row .ghost-button {
+    width: 100%;
   }
 
   .segmented,
