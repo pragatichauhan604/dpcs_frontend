@@ -1,5 +1,14 @@
 export type Role = "doctor" | "patient" | "pharmacist" | "admin";
 
+export type Screen = "dashboard" | "prescriptions" | "create" | "appointments" | "doctors" | "pharmacies" | "inventory" | "admin" | "reports";
+
+export type AuthMode = "login" | "doctor" | "patient" | "pharmacist" | "admin";
+
+export type Session = {
+  token: string;
+  user: User;
+};
+
 export type User = {
   id: string;
   fullName: string;
@@ -79,6 +88,7 @@ export type Prescription = {
   qrCodeToken?: string;
   issuedDate: string;
   expiryDate: string;
+  disease?: string;
   notes?: string;
   items: PrescriptionItem[];
   doctor?: { user?: User; hospitalName?: string; specialization?: string };
@@ -93,4 +103,26 @@ export type Notification = {
   type: string;
   isRead: boolean;
   createdAt: string;
+};
+
+export type AppointmentRequest = {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  requestedDate: string;
+  reason: string;
+  status: string;
+  scheduledAt?: string | null;
+  doctorNote?: string | null;
+  createdAt: string;
+};
+
+export type ToastFn = (message: string) => void;
+
+export type QrPreview = {
+  title: string;
+  image?: string;
+  token?: string;
 };
