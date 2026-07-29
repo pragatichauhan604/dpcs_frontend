@@ -1,5 +1,5 @@
 import { ElementType } from "react";
-import { Activity, ClipboardPlus, Pill, QrCode, ShieldCheck, Store, Stethoscope } from "lucide-react";
+import { Activity, BarChart3, CalendarCheck, ClipboardPlus, Pill, QrCode, ShieldCheck, Store, Stethoscope } from "lucide-react";
 import { Role, Screen } from "../types";
 
 export type NavItem = {
@@ -12,6 +12,7 @@ export const navFor = (role: Role): NavItem[] => {
   if (role === "doctor") {
     return [
       { label: "Dashboard", screen: "dashboard", icon: Activity },
+      { label: "Appointments", screen: "appointments", icon: CalendarCheck },
       { label: "Create prescription", screen: "create", icon: ClipboardPlus },
       { label: "History", screen: "prescriptions", icon: Pill },
       { label: "Availability", screen: "pharmacies", icon: Store },
@@ -37,6 +38,7 @@ export const navFor = (role: Role): NavItem[] => {
     { label: "Dashboard", screen: "dashboard", icon: Activity },
     { label: "Approvals", screen: "admin", icon: ShieldCheck },
     { label: "Medicines", screen: "inventory", icon: Pill },
+    { label: "Reports", screen: "reports", icon: BarChart3 },
   ];
 };
 

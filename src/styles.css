@@ -70,6 +70,20 @@ button:disabled {
   margin-bottom: 24px;
 }
 
+.auth-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #d8e2de;
+}
+
+.auth-heading-row h2 {
+  text-transform: capitalize;
+}
+
 .brand-mark {
   width: 54px;
   height: 54px;
@@ -151,7 +165,8 @@ h3 {
 
 .form-grid,
 .medicine-editor,
-.filters-row {
+.filters-row,
+.report-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
@@ -696,15 +711,31 @@ h3 {
 }
 
 .result-list button,
-.notification-list > div {
+.notification-list > div,
+.notification-list > button {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 12px;
   border: 1px solid #d8e2de;
   border-radius: 7px;
   background: #ffffff;
   text-align: left;
+}
+
+.notification-list > button:hover {
+  border-color: #0f766e;
+  box-shadow: 0 6px 18px rgba(18, 52, 48, 0.08);
+}
+
+.notification-list > button > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-list > button .status {
+  flex-shrink: 0;
 }
 
 .result-list button.selected {
@@ -724,6 +755,45 @@ h3 {
   background: #f8fbfa;
   border: 1px solid #d8e2de;
   border-radius: 8px;
+}
+
+.report-bars {
+  display: grid;
+  gap: 14px;
+}
+
+.report-bar {
+  display: grid;
+  gap: 8px;
+}
+
+.report-bar > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.report-bar span {
+  color: #43514e;
+}
+
+.report-bar strong {
+  color: #0f4f49;
+}
+
+.bar-track {
+  height: 9px;
+  overflow: hidden;
+  background: #edf3f1;
+  border-radius: 999px;
+}
+
+.bar-track span {
+  display: block;
+  height: 100%;
+  background: #0f766e;
+  border-radius: inherit;
 }
 
 .notes-box {
@@ -1058,6 +1128,15 @@ tr:last-child td {
     padding: 16px;
   }
 
+  .auth-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auth-heading-row .ghost-button {
+    width: 100%;
+  }
+
   .segmented,
   .stats-grid,
   .prescription-grid,
@@ -1065,7 +1144,8 @@ tr:last-child td {
   .treatment-grid,
   .form-grid,
   .medicine-editor,
-  .filters-row {
+  .filters-row,
+  .report-grid {
     grid-template-columns: 1fr;
   }
 

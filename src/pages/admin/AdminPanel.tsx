@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, Pill, Stethoscope, Store, Users } from "lucide-react";
+import { Activity, BarChart3, ClipboardCheck, Pill, Stethoscope, Store, Users } from "lucide-react";
 import { NotificationList } from "../../components/notifications/NotificationList";
 import { DataTable } from "../../components/ui/DataTable";
 import { Field } from "../../components/ui/Field";
@@ -21,6 +21,7 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
   const [doctors, setDoctors] = useState<any[]>([]);
   const [pharmacies, setPharmacies] = useState<any[]>([]);
   const [pharmacists, setPharmacists] = useState<any[]>([]);
+  const [reports, setReports] = useState<any>(null);
   const [medicine, setMedicine] = useState({ brandName: "", genericName: "", category: "", dosageForms: "Tablet", standardStrength: "" });
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
     api.get<{ doctors: any[] }>("/admin/doctors").then((data) => setDoctors(data.doctors)).catch(() => setDoctors([]));
     api.get<{ pharmacies: any[] }>("/admin/pharmacies").then((data) => setPharmacies(data.pharmacies)).catch(() => setPharmacies(demoPharmacies));
     api.get<{ pharmacists: any[] }>("/admin/pharmacists").then((data) => setPharmacists(data.pharmacists)).catch(() => setPharmacists([]));
+    api.get<any>("/admin/reports/summary").then(setReports).catch(() => setReports(null));
   }, [api]);
 
   const approveDoctor = async (id: string) => {
@@ -161,6 +163,45 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
     );
   }
 
+  if (screen === "reports") {
+    return (
+      <div className="content-stack">
+        <div className="stats-grid">
+          <StatCard icon={ClipboardCheck} label="Prescriptions today" value={reports?.cards?.prescriptionsToday ?? 0} />
+          <StatCard icon={Activity} label="Monthly prescriptions" value={reports?.cards?.prescriptionsThisMonth ?? 0} />
+          <StatCard icon={Store} label="Monthly dispensed" value={reports?.cards?.dispensedThisMonth ?? 0} />
+          <StatCard icon={Pill} label="Low stock items" value={reports?.cards?.lowStockCount ?? 0} />
+        </div>
+
+        <div className="report-grid">
+          <ReportPanel title="Top medicines" eyebrow="Usage" items={(reports?.topMedicines || []).map((item: any) => ({ label: item.medicineName, value: item.count }))} />
+          <ReportPanel title="Doctor prescription count" eyebrow="Performance" items={(reports?.prescriptionsByDoctor || []).map((item: any) => ({ label: item.doctorName, value: item.count }))} />
+          <ReportPanel title="Patients by city" eyebrow="Coverage" items={(reports?.cityWisePatients || []).map((item: any) => ({ label: item.city, value: item.count }))} />
+          <ReportPanel title="Appointments" eyebrow="Lifecycle" items={(reports?.appointmentSummary || []).map((item: any) => ({ label: labelize(item.status), value: item.count }))} />
+        </div>
+
+        <section className="section-panel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Recent</p>
+              <h2>Latest prescriptions</h2>
+            </div>
+          </div>
+          <DataTable
+            columns={["Patient", "Doctor", "Disease", "Status", "Date"]}
+            rows={(reports?.recentPrescriptions || []).map((prescription: any) => [
+              prescription.patient?.user?.fullName,
+              prescription.doctor?.user?.fullName,
+              prescription.disease || "General",
+              labelize(prescription.status),
+              new Date(prescription.createdAt).toLocaleDateString("en-IN"),
+            ])}
+          />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="content-stack">
       <div className="stats-grid">
@@ -179,5 +220,38 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
         <NotificationList api={api} />
       </section>
     </div>
+  );
+}
+
+function ReportPanel({ eyebrow, title, items }: { eyebrow: string; title: string; items: { label: string; value: number }[] }) {
+  const max = Math.max(...items.map((item) => item.value), 1);
+
+  return (
+    <section className="section-panel">
+      <div className="section-head">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2>{title}</h2>
+        </div>
+        <BarChart3 size={20} />
+      </div>
+      <div className="report-bars">
+        {items.length ? (
+          items.map((item) => (
+            <div className="report-bar" key={item.label}>
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+              <div className="bar-track">
+                <span style={{ width: `${Math.max(8, (item.value / max) * 100)}%` }} />
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="empty-state">No report data yet.</p>
+        )}
+      </div>
+    </section>
   );
 }
