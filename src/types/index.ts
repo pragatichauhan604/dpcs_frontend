@@ -1,6 +1,6 @@
 export type Role = "doctor" | "patient" | "pharmacist" | "admin";
 
-export type Screen = "dashboard" | "prescriptions" | "create" | "doctors" | "pharmacies" | "inventory" | "admin";
+export type Screen = "dashboard" | "prescriptions" | "create" | "appointments" | "doctors" | "pharmacies" | "inventory" | "admin" | "reports";
 
 export type AuthMode = "login" | "doctor" | "patient" | "pharmacist" | "admin";
 
@@ -102,6 +102,20 @@ export type Notification = {
   message: string;
   type: string;
   isRead: boolean;
+  createdAt: string;
+};
+
+export type AppointmentRequest = {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  requestedDate: string;
+  reason: string;
+  status: string;
+  scheduledAt?: string | null;
+  doctorNote?: string | null;
   createdAt: string;
 };
 

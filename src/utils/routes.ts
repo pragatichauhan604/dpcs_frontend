@@ -3,10 +3,10 @@ import { Role, Screen } from "../types";
 export const rolePath = (role: Role) => (role === "pharmacist" ? "pharmacy" : role);
 
 const validScreens: Record<string, Screen[]> = {
-  doctor: ["dashboard", "create", "prescriptions", "pharmacies"],
+  doctor: ["dashboard", "create", "appointments", "prescriptions", "pharmacies"],
   patient: ["dashboard", "doctors", "pharmacies"],
   pharmacy: ["dashboard", "inventory"],
-  admin: ["dashboard", "admin", "inventory"],
+  admin: ["dashboard", "admin", "inventory", "reports"],
 };
 
 const aliases: Record<string, Screen> = {

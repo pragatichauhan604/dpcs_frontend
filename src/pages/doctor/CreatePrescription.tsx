@@ -19,9 +19,20 @@ const emptyItem: PrescriptionItem = {
 type CreatePrescriptionProps = {
   api: ApiClient;
   notify: ToastFn;
+  initialPatient?: {
+    appointmentId?: string;
+    id: string;
+    name: string;
+    phone?: string;
+    email?: string;
+    reason?: string;
+    scheduledAt?: string | null;
+    doctorNote?: string | null;
+  } | null;
+  onPrescriptionCreated?: (appointmentId?: string) => void;
 };
 
-export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
+export function CreatePrescription({ api, notify, initialPatient, onPrescriptionCreated }: CreatePrescriptionProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
   const [patientId, setPatientId] = useState("");
@@ -34,6 +45,32 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
   useEffect(() => {
     api.get<{ medicines: Medicine[] }>("/catalog/medicines").then((data) => setMedicines(data.medicines)).catch(() => setMedicines(demoMedicines));
   }, [api]);
+
+  useEffect(() => {
+    if (!initialPatient) return;
+
+    setPatientId(initialPatient.id);
+    setPatientSearch(initialPatient.name);
+    setPatients([
+      {
+        id: initialPatient.id,
+        user: {
+          fullName: initialPatient.name,
+          phone: initialPatient.phone,
+          email: initialPatient.email,
+        },
+      },
+    ]);
+    setDisease(initialPatient.reason || "");
+    setNotes(
+      [
+        initialPatient.scheduledAt ? `Appointment: ${new Date(initialPatient.scheduledAt).toLocaleString("en-IN")}` : "",
+        initialPatient.doctorNote ? `Appointment note: ${initialPatient.doctorNote}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+  }, [initialPatient]);
 
   useEffect(() => {
     if (!patientSearch.trim()) return;
@@ -51,6 +88,7 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
     try {
       const response = await api.post<{ prescription: Prescription }>("/doctor/prescriptions", {
         patientId,
+        appointmentId: initialPatient?.appointmentId,
         disease: disease || undefined,
         notes,
         items: items.map((item) => ({
@@ -59,6 +97,7 @@ export function CreatePrescription({ api, notify }: CreatePrescriptionProps) {
           medicineId: item.medicineId || undefined,
         })),
       });
+      onPrescriptionCreated?.(initialPatient?.appointmentId);
       setQrPreview({
         title: `Prescription ${response.prescription.id}`,
         image: response.prescription.qrCode,
