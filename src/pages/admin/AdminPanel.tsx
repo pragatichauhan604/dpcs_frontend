@@ -32,33 +32,33 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
     api.get<any>("/admin/reports/summary").then(setReports).catch(() => setReports(null));
   }, [api]);
 
-  const approveDoctor = async (id: string) => {
+  const setDoctorApproval = async (id: string, isApproved: boolean) => {
     try {
-      await api.patch(`/admin/doctors/${id}/approval`, { isApproved: true });
-      setDoctors((current) => current.map((doctor) => (doctor.id === id ? { ...doctor, isApproved: true } : doctor)));
-      notify("Doctor approved.");
+      await api.patch(`/admin/doctors/${id}/approval`, { isApproved });
+      setDoctors((current) => current.map((doctor) => (doctor.id === id ? { ...doctor, isApproved } : doctor)));
+      notify(isApproved ? "Doctor approved." : "Doctor deactivated.");
     } catch (error) {
-      notify(error instanceof ApiError ? error.message : "Doctor approval failed");
+      notify(error instanceof ApiError ? error.message : "Doctor status update failed");
     }
   };
 
-  const approvePharmacy = async (id: string) => {
+  const setPharmacyApproval = async (id: string, isApproved: boolean) => {
     try {
-      await api.patch(`/admin/pharmacies/${id}/approval`, { isApproved: true });
-      setPharmacies((current) => current.map((pharmacy) => (pharmacy.id === id ? { ...pharmacy, isApproved: true } : pharmacy)));
-      notify("Pharmacy approved.");
+      await api.patch(`/admin/pharmacies/${id}/approval`, { isApproved });
+      setPharmacies((current) => current.map((pharmacy) => (pharmacy.id === id ? { ...pharmacy, isApproved, isActive: isApproved } : pharmacy)));
+      notify(isApproved ? "Pharmacy approved." : "Pharmacy deactivated.");
     } catch (error) {
-      notify(error instanceof ApiError ? error.message : "Pharmacy approval failed");
+      notify(error instanceof ApiError ? error.message : "Pharmacy status update failed");
     }
   };
 
-  const approvePharmacist = async (id: string) => {
+  const setPharmacistApproval = async (id: string, isApproved: boolean) => {
     try {
-      await api.patch(`/admin/pharmacists/${id}/approval`, { isApproved: true });
-      setPharmacists((current) => current.map((pharmacist) => (pharmacist.id === id ? { ...pharmacist, isApproved: true } : pharmacist)));
-      notify("Pharmacist approved.");
+      await api.patch(`/admin/pharmacists/${id}/approval`, { isApproved });
+      setPharmacists((current) => current.map((pharmacist) => (pharmacist.id === id ? { ...pharmacist, isApproved } : pharmacist)));
+      notify(isApproved ? "Pharmacist approved." : "Pharmacist deactivated.");
     } catch (error) {
-      notify(error instanceof ApiError ? error.message : "Pharmacist approval failed");
+      notify(error instanceof ApiError ? error.message : "Pharmacist status update failed");
     }
   };
 
@@ -89,8 +89,8 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
               doctor.licenseNumber,
               doctor.hospitalName,
               doctor.isApproved ? "Active" : "Pending",
-              <button className="table-action" onClick={() => approveDoctor(doctor.id)} disabled={doctor.isApproved}>
-                Approve
+              <button className="table-action" onClick={() => setDoctorApproval(doctor.id, !doctor.isApproved)}>
+                {doctor.isApproved ? "Deactivate" : "Approve"}
               </button>,
             ])}
           />
@@ -100,6 +100,7 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
             <div>
               <p className="eyebrow">Approvals</p>
               <h2>Pharmacies</h2>
+              <p className="empty-state">Pharmacy means the medical store/chemist shop location that stores and dispenses medicines.</p>
             </div>
           </div>
           <DataTable
@@ -110,8 +111,8 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
               pharmacy.city,
               pharmacy.phone,
               pharmacy.isApproved ? "Active" : "Pending",
-              <button className="table-action" onClick={() => approvePharmacy(pharmacy.id)} disabled={pharmacy.isApproved}>
-                Approve
+              <button className="table-action" onClick={() => setPharmacyApproval(pharmacy.id, !pharmacy.isApproved)}>
+                {pharmacy.isApproved ? "Deactivate" : "Approve"}
               </button>,
             ])}
           />
@@ -121,6 +122,7 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
             <div>
               <p className="eyebrow">Approvals</p>
               <h2>Pharmacists</h2>
+              <p className="empty-state">Pharmacist means the person/user account working under a pharmacy who can scan QR and dispense medicine.</p>
             </div>
           </div>
           <DataTable
@@ -131,8 +133,8 @@ export function AdminPanel({ api, screen, setScreen, notify }: AdminPanelProps) 
               pharmacist.licenseNumber,
               pharmacist.pharmacy?.name || pharmacist.pharmacyId,
               pharmacist.isApproved ? "Active" : "Pending",
-              <button className="table-action" onClick={() => approvePharmacist(pharmacist.id)} disabled={pharmacist.isApproved}>
-                Approve
+              <button className="table-action" onClick={() => setPharmacistApproval(pharmacist.id, !pharmacist.isApproved)}>
+                {pharmacist.isApproved ? "Deactivate" : "Approve"}
               </button>,
             ])}
           />

@@ -29,10 +29,12 @@ type CreatePrescriptionProps = {
     scheduledAt?: string | null;
     doctorNote?: string | null;
   } | null;
+  editingPrescription?: Prescription | null;
   onPrescriptionCreated?: (appointmentId?: string) => void;
+  onPrescriptionUpdated?: (prescription: Prescription) => void;
 };
 
-export function CreatePrescription({ api, notify, initialPatient, onPrescriptionCreated }: CreatePrescriptionProps) {
+export function CreatePrescription({ api, notify, initialPatient, editingPrescription, onPrescriptionCreated, onPrescriptionUpdated }: CreatePrescriptionProps) {
   const [patientSearch, setPatientSearch] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
   const [patientId, setPatientId] = useState("");
@@ -73,6 +75,23 @@ export function CreatePrescription({ api, notify, initialPatient, onPrescription
   }, [initialPatient]);
 
   useEffect(() => {
+    if (!editingPrescription) return;
+
+    setPatientId(editingPrescription.patient?.id || "");
+    setPatientSearch(editingPrescription.patient?.user?.fullName || "Selected patient");
+    setPatients([
+      {
+        id: editingPrescription.patient?.id || "",
+        user: editingPrescription.patient?.user,
+        bloodGroup: editingPrescription.patient?.bloodGroup,
+      },
+    ]);
+    setDisease(editingPrescription.disease || "");
+    setNotes(editingPrescription.notes || "");
+    setItems(editingPrescription.items.map((item) => ({ ...item })));
+  }, [editingPrescription]);
+
+  useEffect(() => {
     if (!patientSearch.trim()) return;
     const timer = window.setTimeout(() => {
       api.get<{ patients: any[] }>(`/doctor/patients/search?q=${encodeURIComponent(patientSearch)}`).then((data) => setPatients(data.patients)).catch(() => setPatients([]));
@@ -86,7 +105,7 @@ export function CreatePrescription({ api, notify, initialPatient, onPrescription
 
   const submit = async () => {
     try {
-      const response = await api.post<{ prescription: Prescription }>("/doctor/prescriptions", {
+      const payload = {
         patientId,
         appointmentId: initialPatient?.appointmentId,
         disease: disease || undefined,
@@ -96,14 +115,24 @@ export function CreatePrescription({ api, notify, initialPatient, onPrescription
           durationDays: Number(item.durationDays),
           medicineId: item.medicineId || undefined,
         })),
-      });
-      onPrescriptionCreated?.(initialPatient?.appointmentId);
+      };
+
+      const response = editingPrescription
+        ? await api.patch<{ prescription: Prescription }>(`/doctor/prescriptions/${editingPrescription.id}`, payload)
+        : await api.post<{ prescription: Prescription }>("/doctor/prescriptions", payload);
+
+      if (editingPrescription) {
+        onPrescriptionUpdated?.(response.prescription);
+      } else {
+        onPrescriptionCreated?.(initialPatient?.appointmentId);
+      }
+
       setQrPreview({
         title: `Prescription ${response.prescription.id}`,
         image: response.prescription.qrCode,
         token: response.prescription.qrCodeToken,
       });
-      notify("Prescription issued with QR code.");
+      notify(editingPrescription ? "Prescription updated." : "Prescription issued with QR code.");
       setItems([{ ...emptyItem }]);
       setNotes("");
       setDisease("");
@@ -121,12 +150,12 @@ export function CreatePrescription({ api, notify, initialPatient, onPrescription
         <div className="section-head">
           <div>
             <p className="eyebrow">Step 1</p>
-            <h2>Select patient</h2>
+            <h2>{editingPrescription ? "Patient" : "Select patient"}</h2>
           </div>
         </div>
         <div className="search-box">
           <Search size={18} />
-          <input value={patientSearch} onChange={(event) => setPatientSearch(event.target.value)} placeholder="Search by patient name or phone" />
+          <input value={patientSearch} disabled={Boolean(editingPrescription)} onChange={(event) => setPatientSearch(event.target.value)} placeholder="Search by patient name or phone" />
         </div>
         <div className="result-list">
           {patients.map((patient) => (
@@ -199,7 +228,7 @@ export function CreatePrescription({ api, notify, initialPatient, onPrescription
           </div>
           <button className="primary-button compact" disabled={!patientId || items.some((item) => !item.medicineName || !item.dosage)} onClick={submit}>
             <QrCode size={17} />
-            Issue prescription
+            {editingPrescription ? "Update prescription" : "Issue prescription"}
           </button>
         </div>
         <textarea className="notes-box" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Overall notes or follow-up instructions" />

@@ -26,7 +26,7 @@ export function DoctorListPanel({ api, notify }: DoctorListPanelProps) {
 
   const bookAppointment = async () => {
     if (!bookingDoctorId || !preferredDate || reason.trim().length < 3) {
-      notify("Choose date and enter appointment reason.");
+      notify("Choose date, time, and enter appointment reason.");
       return;
     }
 
@@ -102,7 +102,7 @@ export function DoctorListPanel({ api, notify }: DoctorListPanelProps) {
               </button>
             </div>
             <div className="auth-form">
-              <Field label="Preferred date" type="date" value={preferredDate} onChange={setPreferredDate} />
+              <Field label="Preferred date and time" type="datetime-local" value={preferredDate} onChange={setPreferredDate} />
               <Field label="Reason" value={reason} onChange={setReason} />
               <button className="primary-button" onClick={bookAppointment}>
                 <CalendarCheck size={17} />

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Bell, CalendarCheck, ClipboardPlus, Users } from "lucide-react";
+import { Bell, CalendarCheck, CheckCircle2, ClipboardPlus, XCircle, Users } from "lucide-react";
 import { PrescriptionList } from "../../components/prescriptions/PrescriptionList";
 import { QrModal } from "../../components/qr/QrModal";
 import { StatCard } from "../../components/ui/StatCard";
-import { demoPrescriptions } from "../../data/mockData";
 import { ApiClient } from "../../services/api";
-import { AppointmentRequest, Prescription, QrPreview, Screen, ToastFn } from "../../types";
+import { AppointmentRequest, Prescription, QrPreview, RefillRequest, Screen, ToastFn } from "../../types";
 import { AvailabilityPanel } from "../shared/AvailabilityPanel";
 import { CreatePrescription } from "./CreatePrescription";
 
@@ -22,6 +21,9 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
   const [qrPreview, setQrPreview] = useState<QrPreview | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRequest | null>(null);
   const [prescriptionPatient, setPrescriptionPatient] = useState<AppointmentRequest | null>(null);
+  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
+  const [refillRequests, setRefillRequests] = useState<RefillRequest[]>([]);
+  const [refillNotes, setRefillNotes] = useState<Record<string, string>>({});
   const [scheduledAt, setScheduledAt] = useState("");
   const [doctorNote, setDoctorNote] = useState("");
 
@@ -30,7 +32,11 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
     api
       .get<{ prescriptions: Prescription[] }>("/doctor/prescriptions")
       .then((data) => setPrescriptions(data.prescriptions))
-      .catch(() => setPrescriptions(demoPrescriptions));
+      .catch(() => setPrescriptions([]));
+    api
+      .get<{ refillRequests: RefillRequest[] }>("/doctor/refill-requests")
+      .then((data) => setRefillRequests(data.refillRequests))
+      .catch(() => setRefillRequests([]));
   }, [api]);
 
   const appointmentRequests: AppointmentRequest[] = dashboard?.appointmentRequests || [];
@@ -60,8 +66,15 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
   }
 
   function openPrescriptionForAppointment(request: AppointmentRequest) {
+    setEditingPrescription(null);
     setPrescriptionPatient(request);
     setSelectedAppointment(null);
+    setScreen("create");
+  }
+
+  function editPrescription(prescription: Prescription) {
+    setPrescriptionPatient(null);
+    setEditingPrescription(prescription);
     setScreen("create");
   }
 
@@ -79,6 +92,20 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
     }
 
     setPrescriptionPatient(null);
+    setEditingPrescription(null);
+    setScreen("dashboard");
+  }
+
+  function markPrescriptionUpdated(updated: Prescription) {
+    setPrescriptions((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+    setDashboard((current: any) => {
+      if (!current) return current;
+      return {
+        ...current,
+        recentPrescriptions: (current.recentPrescriptions || []).map((item: Prescription) => (item.id === updated.id ? updated : item)),
+      };
+    });
+    setEditingPrescription(null);
     setScreen("dashboard");
   }
 
@@ -111,6 +138,29 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
       notify("Appointment scheduled and sent to patient.");
     } catch {
       notify("Could not schedule appointment.");
+    }
+  }
+
+  async function respondToRefill(request: RefillRequest, status: "approved" | "rejected") {
+    const doctorNote = refillNotes[request.id]?.trim();
+    try {
+      const response = await api.patch<{ refillRequest: RefillRequest }>(`/doctor/refill-requests/${request.id}`, {
+        status,
+        doctorNote: doctorNote || undefined,
+      });
+
+      setRefillRequests((current) => current.map((item) => (item.id === request.id ? { ...item, ...response.refillRequest } : item)));
+      setDashboard((current: any) =>
+        current
+          ? {
+              ...current,
+              pendingRefillAlerts: Math.max(Number(current.pendingRefillAlerts || 0) - 1, 0),
+            }
+          : current,
+      );
+      notify(status === "approved" ? "Refill approved and patient notified." : "Refill rejected and patient notified.");
+    } catch {
+      notify("Could not update refill request.");
     }
   }
 
@@ -163,6 +213,7 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
       <CreatePrescription
         api={api}
         notify={notify}
+        editingPrescription={editingPrescription}
         initialPatient={
           prescriptionPatient
             ? {
@@ -178,6 +229,7 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
             : null
         }
         onPrescriptionCreated={markAppointmentCompleted}
+        onPrescriptionUpdated={markPrescriptionUpdated}
       />
     );
   }
@@ -186,7 +238,7 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
   if (screen === "prescriptions") {
     return (
       <>
-        <PrescriptionList prescriptions={prescriptions.length ? prescriptions : demoPrescriptions} audience="doctor" onShowQr={showQr} />
+        <PrescriptionList prescriptions={prescriptions} audience="doctor" onShowQr={showQr} onEdit={editPrescription} />
         {qrPreview && <QrModal qr={qrPreview} onClose={() => setQrPreview(null)} />}
       </>
     );
@@ -229,12 +281,73 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
     );
   }
 
+  if (screen === "refills") {
+    return (
+      <section className="section-panel">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Refills</p>
+            <h2>Patient refill requests</h2>
+          </div>
+        </div>
+        {refillRequests.length ? (
+          <div className="refill-grid">
+            {refillRequests.map((request) => (
+              <article className="refill-card" key={request.id}>
+                <div className="section-head compact-head">
+                  <div>
+                    <p className="eyebrow">{request.disease || "Prescription refill"}</p>
+                    <h3>{request.patientName}</h3>
+                    <p className="empty-state">
+                      Requested: {formatDate(request.alertDate)} | Expiry: {formatDate(request.expiryDate)}
+                    </p>
+                  </div>
+                  <span className={`status ${statusClass(request.status)}`}>{labelize(request.status)}</span>
+                </div>
+                <div className="medicine-chips">
+                  {request.items.map((item) => (
+                    <span key={item.id || item.medicineName}>{item.medicineName}</span>
+                  ))}
+                </div>
+                <label className="field">
+                  <span>Doctor note</span>
+                  <textarea
+                    value={refillNotes[request.id] || request.doctorNote || ""}
+                    disabled={request.status !== "requested"}
+                    onChange={(event) => setRefillNotes((current) => ({ ...current, [request.id]: event.target.value }))}
+                    placeholder="Reason or instruction for patient"
+                  />
+                </label>
+                {request.status === "requested" ? (
+                  <div className="button-row">
+                    <button className="primary-button compact" onClick={() => respondToRefill(request, "approved")}>
+                      <CheckCircle2 size={17} />
+                      Approve
+                    </button>
+                    <button className="ghost-button danger compact" onClick={() => respondToRefill(request, "rejected")}>
+                      <XCircle size={17} />
+                      Reject
+                    </button>
+                  </div>
+                ) : (
+                  <p className="empty-state">Reviewed: {formatDateTime(request.respondedAt)}</p>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="empty-state">No refill requests yet.</p>
+        )}
+      </section>
+    );
+  }
+
   return (
     <div className="content-stack">
       <div className="stats-grid">
         <StatCard icon={ClipboardPlus} label="Prescriptions today" value={dashboard?.totalPrescriptionsToday ?? 0} onClick={() => setScreen("prescriptions")} />
         <StatCard icon={Users} label="Active patients" value={dashboard?.totalActivePatients ?? 0} onClick={() => setScreen("create")} />
-        <StatCard icon={Bell} label="Pending refills" value={dashboard?.pendingRefillAlerts ?? 0} onClick={() => setScreen("prescriptions")} />
+        <StatCard icon={Bell} label="Pending refills" value={dashboard?.pendingRefillAlerts ?? 0} onClick={() => setScreen("refills")} />
         <StatCard icon={CalendarCheck} label="Appointment requests" value={appointmentRequests.length} onClick={() => setScreen("appointments")} />
       </div>
       <section className="section-panel">
@@ -248,7 +361,7 @@ export function DoctorPanel({ api, screen, setScreen, notify }: DoctorPanelProps
             New prescription
           </button>
         </div>
-        <PrescriptionList prescriptions={dashboard?.recentPrescriptions?.length ? dashboard.recentPrescriptions : demoPrescriptions} audience="doctor" onShowQr={showQr} />
+        <PrescriptionList prescriptions={dashboard?.recentPrescriptions || []} audience="doctor" onShowQr={showQr} onEdit={editPrescription} />
       </section>
       {qrPreview && <QrModal qr={qrPreview} onClose={() => setQrPreview(null)} />}
     </div>
@@ -268,4 +381,19 @@ function toDateTimeInputValue(value?: string | null) {
   const date = new Date(value);
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   return date.toISOString().slice(0, 16);
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "Not available";
+  return new Date(value).toLocaleDateString("en-IN", { dateStyle: "medium" });
+}
+
+function statusClass(status: string) {
+  if (status === "approved") return "dispensed";
+  if (status === "rejected") return "cancelled";
+  return "active";
+}
+
+function labelize(value: string) {
+  return value.replace(/_/g, " ");
 }
