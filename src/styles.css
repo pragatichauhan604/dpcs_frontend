@@ -163,6 +163,25 @@ h3 {
   gap: 16px;
 }
 
+.register-choice {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #f8fbfa;
+  border: 1px solid #d8e2de;
+  border-radius: 8px;
+}
+
+.role-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.role-choice-grid button {
+  text-transform: capitalize;
+}
+
 .form-grid,
 .medicine-editor,
 .filters-row,
@@ -750,6 +769,59 @@ h3 {
   font-size: 0.9rem;
 }
 
+.refill-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.refill-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #d8e2de;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.compact-head {
+  margin-bottom: 0;
+}
+
+.refill-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.medicine-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.medicine-chips span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #23413d;
+  background: #edf5f2;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ghost-button.danger {
+  color: #9f1239;
+  border-color: #fecdd3;
+}
+
+.ghost-button.danger:hover {
+  background: #fff1f2;
+}
+
 .medicine-editor {
   padding: 14px;
   background: #f8fbfa;
@@ -1143,6 +1215,7 @@ tr:last-child td {
   .doctor-grid,
   .treatment-grid,
   .form-grid,
+  .role-choice-grid,
   .medicine-editor,
   .filters-row,
   .report-grid {

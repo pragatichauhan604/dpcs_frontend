@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { ClipboardPlus, Pill, QrCode, Store, Stethoscope } from "lucide-react";
+import { NotificationList } from "../../components/notifications/NotificationList";
 import { PrescriptionList } from "../../components/prescriptions/PrescriptionList";
 import { QrModal } from "../../components/qr/QrModal";
 import { StatCard } from "../../components/ui/StatCard";
-import { demoPharmacies, demoPrescriptions } from "../../data/mockData";
+import { demoPharmacies } from "../../data/mockData";
 import { ApiClient, ApiError } from "../../services/api";
 import { Prescription, QrPreview, Screen, ToastFn } from "../../types";
 import { AvailabilityPanel } from "../shared/AvailabilityPanel";
@@ -22,7 +23,7 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
   const [qrPreview, setQrPreview] = useState<QrPreview | null>(null);
 
   useEffect(() => {
-    api.get<{ prescriptions: Prescription[] }>("/patient/prescriptions").then((data) => setPrescriptions(data.prescriptions)).catch(() => setPrescriptions(demoPrescriptions));
+    api.get<{ prescriptions: Prescription[] }>("/patient/prescriptions").then((data) => setPrescriptions(data.prescriptions)).catch(() => setPrescriptions([]));
     api.get<{ doctors: any[] }>("/patient/doctors").then((data) => setDoctors(data.doctors)).catch(() => setDoctors([]));
   }, [api]);
 
@@ -42,8 +43,8 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
   return (
     <div className="content-stack">
       <div className="stats-grid">
-        <StatCard icon={ClipboardPlus} label="Active prescriptions" value={prescriptions.filter((item) => item.status === "active").length || 1} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
-        <StatCard icon={QrCode} label="QR codes" value={prescriptions.length || 1} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
+        <StatCard icon={ClipboardPlus} label="Active prescriptions" value={prescriptions.filter((item) => item.status === "active").length} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
+        <StatCard icon={QrCode} label="QR codes" value={prescriptions.length} onClick={() => document.getElementById("patient-prescriptions")?.scrollIntoView({ behavior: "smooth" })} />
         <StatCard icon={Stethoscope} label="Available doctors" value={doctors.length} onClick={() => setScreen("doctors")} />
         <StatCard icon={Store} label="Nearby pharmacies" value={demoPharmacies.length} onClick={() => setScreen("pharmacies")} />
       </div>
@@ -56,7 +57,7 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
           </div>
         </div>
         <div className="treatment-grid">
-          {(prescriptions.length ? prescriptions : demoPrescriptions)
+          {prescriptions
             .filter((prescription) => prescription.status === "active")
             .map((prescription) => (
               <article className="treatment-card" key={prescription.id}>
@@ -81,7 +82,18 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
                 </div>
               </article>
             ))}
+          {!prescriptions.filter((prescription) => prescription.status === "active").length && <p className="empty-state">No active treatment yet. Book a doctor appointment to start treatment.</p>}
         </div>
+      </section>
+
+      <section className="section-panel">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Updates</p>
+            <h2>Appointment and prescription notifications</h2>
+          </div>
+        </div>
+        <NotificationList api={api} />
       </section>
 
       <section className="section-panel">
@@ -112,7 +124,7 @@ export function PatientPanel({ api, screen, setScreen, notify }: PatientPanelPro
 
       <div id="patient-prescriptions">
         <PrescriptionList
-          prescriptions={prescriptions.length ? prescriptions : demoPrescriptions}
+          prescriptions={prescriptions}
           audience="patient"
           onShowQr={async (prescription) => {
             try {

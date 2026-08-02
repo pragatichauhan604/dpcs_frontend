@@ -1,6 +1,6 @@
 export type Role = "doctor" | "patient" | "pharmacist" | "admin";
 
-export type Screen = "dashboard" | "prescriptions" | "create" | "appointments" | "doctors" | "pharmacies" | "inventory" | "admin" | "reports";
+export type Screen = "dashboard" | "prescriptions" | "create" | "appointments" | "refills" | "doctors" | "pharmacies" | "inventory" | "admin" | "reports";
 
 export type AuthMode = "login" | "doctor" | "patient" | "pharmacist" | "admin";
 
@@ -90,9 +90,11 @@ export type Prescription = {
   expiryDate: string;
   disease?: string;
   notes?: string;
+  createdAt?: string;
+  followUpDate?: string;
   items: PrescriptionItem[];
   doctor?: { user?: User; hospitalName?: string; specialization?: string };
-  patient?: { user?: User; bloodGroup?: string; city?: string };
+  patient?: { id?: string; user?: User; bloodGroup?: string; city?: string };
   dispensedRecord?: { dispensedAt: string; pharmacy?: Pharmacy; status: string };
 };
 
@@ -117,6 +119,23 @@ export type AppointmentRequest = {
   scheduledAt?: string | null;
   doctorNote?: string | null;
   createdAt: string;
+};
+
+export type RefillRequest = {
+  id: string;
+  prescriptionId: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  alertDate: string;
+  status: string;
+  doctorNote?: string | null;
+  respondedAt?: string | null;
+  disease?: string | null;
+  issuedDate: string;
+  expiryDate: string;
+  items: PrescriptionItem[];
 };
 
 export type ToastFn = (message: string) => void;

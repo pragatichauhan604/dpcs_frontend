@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
-import { demoNotifications } from "../../data/mockData";
 import { ApiClient } from "../../services/api";
 import { Notification } from "../../types";
 
@@ -9,18 +8,18 @@ type NotificationListProps = {
 };
 
 export function NotificationList({ api }: NotificationListProps) {
-  const [notifications, setNotifications] = useState<Notification[]>(demoNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     api
       .get<{ notifications: Notification[] }>("/notifications")
       .then((data) => setNotifications(data.notifications))
-      .catch(() => setNotifications(demoNotifications));
+      .catch(() => setNotifications([]));
   }, [api]);
 
   return (
     <div className="notification-list">
-      {notifications.map((notification) => (
+      {notifications.length ? notifications.map((notification) => (
         <div key={notification.id} className={notification.isRead ? "read" : ""}>
           <Bell size={18} />
           <div>
@@ -28,7 +27,7 @@ export function NotificationList({ api }: NotificationListProps) {
             <span>{notification.message}</span>
           </div>
         </div>
-      ))}
+      )) : <p className="empty-state">No notifications yet.</p>}
     </div>
   );
 }

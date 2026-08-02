@@ -1,4 +1,4 @@
-import { Bell, Download, Pill, QrCode } from "lucide-react";
+import { Bell, Download, Pencil, Pill, QrCode } from "lucide-react";
 import { Prescription } from "../../types";
 import { formatCode } from "../../utils/format";
 
@@ -8,9 +8,14 @@ type PrescriptionListProps = {
   onRefill?: (id: string) => void;
   onShowQr?: (prescription: Prescription) => void;
   onDownloadPdf?: (prescription: Prescription) => void;
+  onEdit?: (prescription: Prescription) => void;
 };
 
-export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr, onDownloadPdf }: PrescriptionListProps) {
+export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr, onDownloadPdf, onEdit }: PrescriptionListProps) {
+  if (!prescriptions.length) {
+    return <p className="empty-state">No prescriptions created yet.</p>;
+  }
+
   return (
     <div className="prescription-grid">
       {prescriptions.map((prescription) => (
@@ -33,6 +38,12 @@ export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr, 
             ))}
           </div>
           <div className="card-actions">
+            {audience === "doctor" && onEdit && canEditPrescription(prescription) && (
+              <button className="ghost-button compact" onClick={() => onEdit(prescription)}>
+                <Pencil size={16} />
+                Edit
+              </button>
+            )}
             {onShowQr && (
               <button className="ghost-button compact" onClick={() => onShowQr?.(prescription)}>
                 <QrCode size={16} />
@@ -57,4 +68,11 @@ export function PrescriptionList({ prescriptions, audience, onRefill, onShowQr, 
       ))}
     </div>
   );
+}
+
+function canEditPrescription(prescription: Prescription) {
+  if (prescription.status === "dispensed") return false;
+  if (!prescription.createdAt) return true;
+  const createdAt = new Date(prescription.createdAt).getTime();
+  return Date.now() - createdAt <= 30 * 60 * 1000;
 }
